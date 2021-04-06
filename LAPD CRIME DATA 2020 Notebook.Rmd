@@ -1,0 +1,62 @@
+---
+title: 'Twin Pandemics: Documenting the Increase in Domestic Violence During the COVID-19
+  Pandemic'
+output:html_notebook
+---
+
+**REPORTING QUESTIONS**
+
+*Who are the populations most impacted by domestic violence in 2020?*
+
+*How did the pandemic impact domestic violence?*
+
+**LOADING TIDYVERSE AND IMPORTING DATA**
+
+```{r}
+#Load Tidyverse
+
+library(tidyverse)
+
+#Import LAPD crime data 2020
+
+read_csv("Crime_Data_from_2020_to_Present.csv", 
+         col_types = cols(`Date Rptd` = col_datetime(format = "%m/%d/%Y %H:%M:%S %p"), 
+                          `DATE OCC` = col_datetime(format = "%m/%d/%Y %H:%M:%S %p"), 
+                          `TIME OCC` = col_character(), `Part 1-2` = col_number(), 
+                          `Crm Cd` = col_character(), `Vict Age` = col_character(), 
+                          `Premis Cd` = col_number(), LAT = col_number(), 
+                          LON = col_number()))
+View(Crime_Data_from_2020_to_Present)
+```
+
+**FILTERING DATE DATA**
+
+I am filtering using OCC Date data because it is the date the incident occured as opposed to the date the incident was reported to LAPD
+
+```{r}
+#Filtering Crimes for Year 2020
+
+library(lubridate)
+library(dplyr)
+
+#format date field
+Crime_Data_from_2020_to_Present$`DATE OCC` <- as.Date(Crime_Data_from_2020_to_Present$`DATE OCC`, format = "%m/%d/%Y %H:%M:%S %p")
+
+crime_data_2020 <- Crime_Data_from_2020_to_Present %>%
+  filter(Crime_Data_from_2020_to_Present$`DATE OCC` >= as.Date("2020-01-01") & Crime_Data_from_2020_to_Present$`DATE OCC` <= as.Date("2020-12-31"))
+
+view(crime_data_2020)
+```
+
+**ISOLATING MOCODE 2000**
+
+I am using MO CODE 2000 - Domestic violence to capture all crime incidents where domestic violence was a factor. Using USR codes leaves out crimes such as homicide and rape where domestic violence was a motive.
+
+```{r}
+#Filter MO CODE 2000 - Code for Domestic Violence
+
+mo_code_2000 <- crime_data_2020 %>%
+  filter(grepl('2000', crime_data_2020$Mocodes))
+
+head(mo_code_2000)
+```
